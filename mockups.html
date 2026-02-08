@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle Tracker — 3 Style Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&family=Space+Mono:wght@400;700&family=Nunito:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #1a1a2e;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 80px;
+    min-height: 100vh;
+    color: #fff;
+  }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .subtitle {
+    color: #8888aa;
+    font-size: 0.95rem;
+    margin-bottom: 50px;
+    text-align: center;
+  }
+
+  .mockups-row {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .mockup-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .style-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ccc;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+
+  .style-desc {
+    color: #777;
+    font-size: 0.8rem;
+    max-width: 300px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 320px;
+    height: 640px;
+    border-radius: 36px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.08);
+    flex-shrink: 0;
+  }
+
+  .phone::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 0 0 18px 18px;
+    z-index: 10;
+  }
+
+  /* ============================================ */
+  /* STYLE 1: MINIMALISM                          */
+  /* ============================================ */
+  .phone-minimal {
+    background: #fafafa;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .phone-minimal .screen {
+    padding: 48px 20px 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-minimal .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .phone-minimal .month-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .phone-minimal .year {
+    font-size: 0.7rem;
+    color: #999;
+    letter-spacing: 0.1em;
+  }
+
+  .phone-minimal .nav-arrows {
+    display: flex;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: #555;
+  }
+
+  .phone-minimal .nav-arrows span {
+    cursor: pointer;
+    padding: 2px 6px;
+    border: 1px solid #ddd;
+  }
+
+  .phone-minimal .divider {
+    height: 1px;
+    background: #111;
+    margin: 10px 0;
+  }
+
+  .phone-minimal .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 0.55rem;
+    color: #999;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .phone-minimal .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    flex: 1;
+  }
+
+  .phone-minimal .day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    color: #333;
+    aspect-ratio: 1;
+    position: relative;
+  }
+
+  .phone-minimal .day.empty { color: transparent; }
+
+  .phone-minimal .day.period {
+    background: #111;
+    color: #fff;
+  }
+
+  .phone-minimal .day.predicted-period {
+    border: 1.5px solid #111;
+    color: #111;
+  }
+
+  .phone-minimal .day.ovulation {
+    background: none;
+    color: #111;
+  }
+
+  .phone-minimal .day.ovulation::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    width: 3px;
+    height: 3px;
+    background: #111;
+    border-radius: 50%;
+  }
+
+  .phone-minimal .day.today {
+    outline: 1.5px solid #e44;
+    outline-offset: -1.5px;
+  }
+
+  .phone-minimal .legend {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid #111;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .phone-minimal .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.6rem;
+    color: #555;
+    letter-spacing: 0.05em;
+  }
+
+  .phone-minimal .legend-box {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .phone-minimal .legend-box.lb-period { background: #111; }
+  .phone-minimal .legend-box.lb-predicted { border: 1.5px solid #111; }
+  .phone-minimal .legend-box.lb-ovulation {
+    background: none;
+    position: relative;
+  }
+  .phone-minimal .legend-box.lb-ovulation::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 4px;
+    background: #111;
+    border-radius: 50%;
+  }
+
+  .phone-minimal .info-bar {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f0f0f0;
+    font-size: 0.65rem;
+    color: #555;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+  }
+
+  .phone-minimal .info-bar strong {
+    color: #111;
+    font-weight: 700;
+  }
+
+  /* ============================================ */
+  /* STYLE 2: SOFT / FEMININE                     */
+  /* ============================================ */
+  .phone-soft {
+    background: linear-gradient(180deg, #fef0f5 0%, #fdf2f8 30%, #fce8f3 100%);
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .phone-soft .screen {
+    padding: 48px 18px 18px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-soft .header {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .phone-soft .greeting {
+    font-size: 0.7rem;
+    color: #c08a9d;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .phone-soft .month-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: #6b3a5d;
+    font-weight: 500;
+  }
+
+  .phone-soft .cycle-ring {
+    width: 140px;
+    height: 140px;
+    margin: 10px auto;
+    border-radius: 50%;
+    background: conic-gradient(
+      #f9a8c9 0deg, #f9a8c9 60deg,
+      #fce4ec 60deg, #fce4ec 190deg,
+      #b8e6cf 190deg, #b8e6cf 210deg,
+      #fce4ec 210deg, #fce4ec 360deg
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 8px 24px rgba(200, 120, 160, 0.15);
+  }
+
+  .phone-soft .cycle-ring-inner {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fef4f8, #fff8fa);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 2px 8px rgba(200, 120, 160, 0.08);
+  }
+
+  .phone-soft .cycle-day-num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #6b3a5d;
+    line-height: 1;
+  }
+
+  .phone-soft .cycle-day-label {
+    font-size: 0.55rem;
+    color: #b07a98;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .phone-soft .phase-badge {
+    display: inline-block;
+    margin: 10px auto;
+    padding: 5px 16px;
+    background: rgba(249, 168, 201, 0.2);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    color: #c06a8e;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .phone-soft .mini-cal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0 6px;
+  }
+
+  .phone-soft .mini-cal-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6b3a5d;
+  }
+
+  .phone-soft .mini-cal-arrows {
+    display: flex;
+    gap: 8px;
+    color: #c08a9d;
+    font-size: 0.75rem;
+  }
+
+  .phone-soft .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 0.5rem;
+    color: #c08a9d;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .phone-soft .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .phone-soft .day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    color: #7a5a6e;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    position: relative;
+  }
+
+  .phone-soft .day.empty { color: transparent; }
+
+  .phone-soft .day.period {
+    background: linear-gradient(135deg, #f9a8c9, #f48fb1);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(244, 143, 177, 0.35);
+  }
+
+  .phone-soft .day.predicted-period {
+    background: rgba(249, 168, 201, 0.3);
+    color: #c06a8e;
+  }
+
+  .phone-soft .day.ovulation {
+    background: linear-gradient(135deg, #a8e6cf, #81d4a8);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(129, 212, 168, 0.35);
+  }
+
+  .phone-soft .day.today {
+    box-shadow: 0 0 0 2px #e06090;
+  }
+
+  .phone-soft .info-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 10px;
+  }
+
+  .phone-soft .info-card {
+    background: rgba(255,255,255,0.7);
+    border-radius: 14px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(200, 120, 160, 0.08);
+  }
+
+  .phone-soft .info-card .ic-icon {
+    font-size: 1rem;
+    margin-bottom: 2px;
+  }
+
+  .phone-soft .info-card .ic-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #6b3a5d;
+  }
+
+  .phone-soft .info-card .ic-label {
+    font-size: 0.5rem;
+    color: #b07a98;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* ============================================ */
+  /* STYLE 3: MODERN / BOLD (Flo/Clue-like)       */
+  /* ============================================ */
+  .phone-modern {
+    background: #0f0f1a;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .phone-modern .screen {
+    padding: 48px 18px 18px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-modern .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .phone-modern .month-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .phone-modern .today-badge {
+    padding: 4px 12px;
+    background: linear-gradient(135deg, #ff5e87, #ff3c6f);
+    border-radius: 20px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .phone-modern .status-bar {
+    background: linear-gradient(135deg, rgba(255,94,135,0.15), rgba(168,130,255,0.1));
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255,94,135,0.15);
+  }
+
+  .phone-modern .status-phase {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ff5e87;
+    margin-bottom: 4px;
+  }
+
+  .phone-modern .status-detail {
+    font-size: 0.65rem;
+    color: #888;
+    line-height: 1.5;
+  }
+
+  .phone-modern .status-detail strong {
+    color: #ccc;
+  }
+
+  .phone-modern .progress-track {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin-top: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .phone-modern .progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 35%;
+    background: linear-gradient(90deg, #ff5e87, #a882ff);
+    border-radius: 2px;
+  }
+
+  .phone-modern .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 0.55rem;
+    color: #555;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  .phone-modern .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+
+  .phone-modern .day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: #666;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    position: relative;
+    font-weight: 500;
+  }
+
+  .phone-modern .day.empty { color: transparent; }
+
+  .phone-modern .day.period {
+    background: linear-gradient(135deg, #ff5e87, #ff3c6f);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(255, 60, 111, 0.35);
+  }
+
+  .phone-modern .day.predicted-period {
+    background: rgba(255, 94, 135, 0.12);
+    color: #ff5e87;
+    border: 1px solid rgba(255, 94, 135, 0.25);
+  }
+
+  .phone-modern .day.ovulation {
+    background: linear-gradient(135deg, #a882ff, #8b5cf6);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(168, 130, 255, 0.35);
+  }
+
+  .phone-modern .day.fertile {
+    background: rgba(168, 130, 255, 0.1);
+    color: #a882ff;
+    border: 1px solid rgba(168, 130, 255, 0.2);
+  }
+
+  .phone-modern .day.today {
+    box-shadow: 0 0 0 2px #fff;
+  }
+
+  .phone-modern .bottom-stats {
+    margin-top: auto;
+    padding-top: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .phone-modern .stat {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 10px 6px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .phone-modern .stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff5e87, #a882ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .phone-modern .stat-label {
+    font-size: 0.48rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+
+  .phone-modern .nav-bar {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0 4px;
+    margin-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .phone-modern .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.45rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .phone-modern .nav-item.active { color: #ff5e87; }
+
+  .phone-modern .nav-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .phone-modern .nav-item.active .nav-icon {
+    background: rgba(255, 94, 135, 0.2);
+  }
+</style>
+</head>
+<body>
+
+<h1>Cycle Tracker — выбери стиль</h1>
+<p class="subtitle">Три варианта дизайна для приложения трекера цикла</p>
+
+<div class="mockups-row">
+
+  <!-- ========== MOCKUP 1: MINIMALISM ========== -->
+  <div class="mockup-container">
+    <div class="style-label">① Минимализм</div>
+    <div class="phone phone-minimal">
+      <div class="screen">
+        <div class="header">
+          <div>
+            <div class="month-title">Февраль</div>
+            <div class="year">2026</div>
+          </div>
+          <div class="nav-arrows">
+            <span>←</span>
+            <span>→</span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="weekdays">
+          <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+        </div>
+        <div class="calendar-grid">
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day">1</div>
+          <div class="day period">2</div>
+          <div class="day period">3</div>
+          <div class="day period">4</div>
+          <div class="day period">5</div>
+          <div class="day period">6</div>
+          <div class="day">7</div>
+          <div class="day today">8</div>
+          <div class="day">9</div>
+          <div class="day">10</div>
+          <div class="day">11</div>
+          <div class="day">12</div>
+          <div class="day">13</div>
+          <div class="day">14</div>
+          <div class="day">15</div>
+          <div class="day ovulation">16</div>
+          <div class="day ovulation">17</div>
+          <div class="day ovulation">18</div>
+          <div class="day">19</div>
+          <div class="day">20</div>
+          <div class="day">21</div>
+          <div class="day">22</div>
+          <div class="day">23</div>
+          <div class="day">24</div>
+          <div class="day">25</div>
+          <div class="day">26</div>
+          <div class="day">27</div>
+          <div class="day">28</div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-box lb-period"></div>Менструация (факт)</div>
+          <div class="legend-item"><div class="legend-box lb-predicted"></div>Менструация (прогноз)</div>
+          <div class="legend-item"><div class="legend-box lb-ovulation"></div>Овуляция (прогноз)</div>
+        </div>
+        <div class="info-bar">
+          <strong>День цикла:</strong> 7 из ~28<br>
+          <strong>След. цикл:</strong> ~2 марта
+        </div>
+      </div>
+    </div>
+    <p class="style-desc">Чёрно-белая эстетика. Чистый календарь, моношрифт, ничего лишнего. Данные и только данные.</p>
+  </div>
+
+  <!-- ========== MOCKUP 2: SOFT / FEMININE ========== -->
+  <div class="mockup-container">
+    <div class="style-label">② Мягкий / Женственный</div>
+    <div class="phone phone-soft">
+      <div class="screen">
+        <div class="header">
+          <div class="greeting">Сегодня</div>
+          <div class="month-title">Февраль</div>
+        </div>
+        <div class="cycle-ring">
+          <div class="cycle-ring-inner">
+            <div class="cycle-day-num">7</div>
+            <div class="cycle-day-label">день цикла</div>
+          </div>
+        </div>
+        <div class="phase-badge">🌸 Фолликулярная фаза</div>
+        <div class="mini-cal-header">
+          <div class="mini-cal-title">Февраль 2026</div>
+          <div class="mini-cal-arrows">‹ ›</div>
+        </div>
+        <div class="weekdays">
+          <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+        </div>
+        <div class="calendar-grid">
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day">1</div>
+          <div class="day period">2</div>
+          <div class="day period">3</div>
+          <div class="day period">4</div>
+          <div class="day period">5</div>
+          <div class="day period">6</div>
+          <div class="day">7</div>
+          <div class="day today">8</div>
+          <div class="day">9</div>
+          <div class="day">10</div>
+          <div class="day">11</div>
+          <div class="day">12</div>
+          <div class="day">13</div>
+          <div class="day">14</div>
+          <div class="day">15</div>
+          <div class="day ovulation">16</div>
+          <div class="day ovulation">17</div>
+          <div class="day ovulation">18</div>
+          <div class="day">19</div>
+          <div class="day">20</div>
+          <div class="day">21</div>
+          <div class="day">22</div>
+          <div class="day">23</div>
+          <div class="day">24</div>
+          <div class="day">25</div>
+          <div class="day">26</div>
+          <div class="day">27</div>
+          <div class="day">28</div>
+        </div>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="ic-icon">📅</div>
+            <div class="ic-value">22</div>
+            <div class="ic-label">дня до цикла</div>
+          </div>
+          <div class="info-card">
+            <div class="ic-icon">✨</div>
+            <div class="ic-value">8</div>
+            <div class="ic-label">до овуляции</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="style-desc">Пастельные розовые тона, кольцо цикла, мягкие тени, карточки с инфо. Тёплый и уютный интерфейс.</p>
+  </div>
+
+  <!-- ========== MOCKUP 3: MODERN / BOLD ========== -->
+  <div class="mockup-container">
+    <div class="style-label">③ Яркий / Современный</div>
+    <div class="phone phone-modern">
+      <div class="screen">
+        <div class="header">
+          <div class="month-title">Февраль 2026</div>
+          <div class="today-badge">День 7</div>
+        </div>
+        <div class="status-bar">
+          <div class="status-phase">Фолликулярная фаза</div>
+          <div class="status-detail">
+            Менструация закончилась <strong>6 фев</strong><br>
+            Овуляция ≈ <strong>16 фев</strong> · След. цикл ≈ <strong>2 мар</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill"></div>
+          </div>
+        </div>
+        <div class="weekdays">
+          <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+        </div>
+        <div class="calendar-grid">
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day empty"></div>
+          <div class="day">1</div>
+          <div class="day period">2</div>
+          <div class="day period">3</div>
+          <div class="day period">4</div>
+          <div class="day period">5</div>
+          <div class="day period">6</div>
+          <div class="day">7</div>
+          <div class="day today">8</div>
+          <div class="day">9</div>
+          <div class="day">10</div>
+          <div class="day">11</div>
+          <div class="day">12</div>
+          <div class="day fertile">13</div>
+          <div class="day fertile">14</div>
+          <div class="day fertile">15</div>
+          <div class="day ovulation">16</div>
+          <div class="day fertile">17</div>
+          <div class="day fertile">18</div>
+          <div class="day">19</div>
+          <div class="day">20</div>
+          <div class="day">21</div>
+          <div class="day">22</div>
+          <div class="day">23</div>
+          <div class="day">24</div>
+          <div class="day">25</div>
+          <div class="day">26</div>
+          <div class="day">27</div>
+          <div class="day">28</div>
+        </div>
+        <div class="bottom-stats">
+          <div class="stat">
+            <div class="stat-value">28</div>
+            <div class="stat-label">длина цикла</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">5</div>
+            <div class="stat-label">дни месячных</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">22</div>
+            <div class="stat-label">до цикла</div>
+          </div>
+        </div>
+        <div class="nav-bar">
+          <div class="nav-item active">
+            <div class="nav-icon"></div>
+            Календарь
+          </div>
+          <div class="nav-item">
+            <div class="nav-icon"></div>
+            История
+          </div>
+          <div class="nav-item">
+            <div class="nav-icon"></div>
+            Настройки
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="style-desc">Тёмная тема, яркие градиенты (розовый + фиолетовый), прогресс-бар цикла, фертильное окно. Как Flo/Clue.</p>
+  </div>
+
+</div>
+
+</body>
+</html>
