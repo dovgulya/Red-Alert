@@ -10,15 +10,19 @@ const App = {
   currentScreen: 'calendar',
   renderedMonths: new Set(),
   scrollContainer: null,
+  backupKey: 'red-alert-backup',
   isScrolling: false,
   todayStr: Calc.today(),
 
   async init() {
     await DB.init();
     await App.loadData();
-    App.setupCalendar();
-    App.updateStatusBar();
-    App.updateStats();
+    const restored = await App.restoreBackupIfMissing();
+    if (!restored) {
+      App.setupCalendar();
+      App.updateStatusBar();
+      App.updateStats();
+    }
     App.setupNavigation();
     App.setupModal();
     App.setupSettings();
@@ -31,6 +35,34 @@ const App = {
     App.defaults = await DB.getDefaults();
     App.avgs = Calc.calcAverages(App.cycles, App.defaults);
     App.dateMap = Calc.buildDateMap(App.cycles, App.defaults);
+  },
+
+  async saveBackup() {
+    try {
+      const data = await DB.exportData();
+      localStorage.setItem(App.backupKey, data);
+    } catch (err) {
+      console.warn('Backup failed', err);
+    }
+  },
+
+  clearBackup() {
+    localStorage.removeItem(App.backupKey);
+  },
+
+  async restoreBackupIfMissing() {
+    if (App.cycles.length > 0) return false;
+    const data = localStorage.getItem(App.backupKey);
+    if (!data) return false;
+    try {
+      await DB.importData(data);
+      await App.refresh();
+      App.showToast('Данные восстановлены');
+      return true;
+    } catch (err) {
+      console.warn('Restore failed', err);
+      return false;
+    }
   },
 
   // ---- Helpers for safe DOM creation ----
@@ -401,6 +433,7 @@ const App = {
       periodLength: null
     });
 
+    await App.saveBackup();
     await App.refresh();
     App.showToast('Цикл начат');
   },
@@ -410,6 +443,7 @@ const App = {
     const lastCycle = App.cycles[App.cycles.length - 1];
     const periodLength = Calc.diffDays(lastCycle.startDate, dateStr) + 1;
     await DB.updateCycle(lastCycle.id, { endDate: dateStr, periodLength });
+    await App.saveBackup();
     await App.refresh();
     App.showToast('Конец отмечен');
   },
@@ -433,6 +467,7 @@ const App = {
       App.showToast('Отметка убрана');
     }
 
+    await App.saveBackup();
     await App.refresh();
   },
 
@@ -495,6 +530,7 @@ const App = {
   confirmDelete(cycleId) {
     App.showConfirm('Удалить этот цикл?', async () => {
       await DB.deleteCycle(cycleId);
+      await App.saveBackup();
       await App.refresh();
       App.renderHistory();
       App.showToast('Цикл удалён');
@@ -568,6 +604,7 @@ const App = {
         predictedEndDate: prediction.predictedEndDate
       });
       App.closeEditModal();
+      await App.saveBackup();
       await App.refresh();
       App.renderHistory();
       App.showToast('Сохранено');
@@ -598,6 +635,7 @@ const App = {
       cycleLengthValue.textContent = val;
       await DB.setSetting('defaultCycleLength', val);
       App.defaults.cycleLength = val;
+      await App.saveBackup();
       await App.refresh();
     });
 
@@ -606,6 +644,7 @@ const App = {
       periodLengthValue.textContent = val;
       await DB.setSetting('defaultPeriodLength', val);
       App.defaults.periodLength = val;
+      await App.saveBackup();
       await App.refresh();
     });
 
@@ -629,6 +668,7 @@ const App = {
       try {
         const text = await file.text();
         await DB.importData(text);
+        await App.saveBackup();
         await App.refresh();
         App.showToast('Данные импортированы');
       } catch (err) {
@@ -641,6 +681,7 @@ const App = {
       App.showConfirm('Удалить все данные?', () => {
         App.showConfirm('Точно удалить ВСЕ данные?', async () => {
           await DB.clearAll();
+          App.clearBackup();
           App.defaults = { cycleLength: 28, periodLength: 5 };
           cycleLengthSlider.value = 28;
           cycleLengthValue.textContent = '28';
