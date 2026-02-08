@@ -1,20 +1,21 @@
 const CACHE_NAME = 'red-alert-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/app.js',
-  '/db.js',
-  '/calc.js',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  './',
+  './index.html',
+  './style.css',
+  './app.js',
+  './db.js',
+  './calc.js',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
+const ASSET_URLS = ASSETS.map(asset => new URL(asset, self.registration.scope).href);
 
 // Install: precache all assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSET_URLS))
   );
   self.skipWaiting();
 });
