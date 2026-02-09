@@ -1,4 +1,4 @@
-const CACHE_NAME = 'red-alert-v2';
+const CACHE_NAME = 'red-alert-v3';
 const BASE_PATH = '/Red-Alert/';
 const ASSETS = [
   BASE_PATH,
