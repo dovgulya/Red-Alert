@@ -246,7 +246,7 @@ const App = {
     const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
                         'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 
-    const threshold = 160;
+    const threshold = App.scrollContainer.getBoundingClientRect().top + 40;
     let found = null;
     for (const m of months) {
       const titleEl = m.querySelector('.calendar-month__title');
