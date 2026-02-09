@@ -34,7 +34,25 @@ const App = {
     App.cycles = await DB.getAllCycles();
     App.defaults = await DB.getDefaults();
     App.avgs = Calc.calcAverages(App.cycles, App.defaults);
+    await App.repairCycles();
     App.dateMap = Calc.buildDateMap(App.cycles, App.defaults);
+  },
+
+  async repairCycles() {
+    let changed = false;
+    for (const cycle of App.cycles) {
+      if (!cycle.endDate) {
+        const pLen = cycle.periodLength || App.avgs.avgPeriodLength;
+        const endDate = Calc.addDays(cycle.startDate, pLen - 1);
+        await DB.updateCycle(cycle.id, { endDate, periodLength: pLen });
+        cycle.endDate = endDate;
+        cycle.periodLength = pLen;
+        changed = true;
+      }
+    }
+    if (changed) {
+      await App.saveBackup();
+    }
   },
 
   async saveBackup() {
@@ -732,20 +750,19 @@ const App = {
     }
 
     const sorted = [...App.cycles].reverse();
-    let body = 'Red Alert — Статистика циклов\n\n';
-    body += 'Средняя длина цикла: ' + App.avgs.avgCycleLength + ' дн.\n';
-    body += 'Средняя длительность месячных: ' + App.avgs.avgPeriodLength + ' дн.\n\n';
-    body += 'История:\n';
+    let body = 'Red Alert — Статистика\n\n';
+    body += 'Ср. цикл: ' + App.avgs.avgCycleLength + ' дн.\n';
+    body += 'Ср. месячные: ' + App.avgs.avgPeriodLength + ' дн.\n\n';
 
     sorted.forEach((cycle, idx) => {
       const nextCycle = idx > 0 ? sorted[idx - 1] : null;
       const cycleLen = nextCycle ? Calc.diffDays(cycle.startDate, nextCycle.startDate) : null;
       const periodLen = cycle.endDate ? Calc.diffDays(cycle.startDate, cycle.endDate) + 1 : null;
 
-      body += '\n' + Calc.formatFull(cycle.startDate);
-      body += ' → ' + (cycle.endDate ? Calc.formatFull(cycle.endDate) : '...');
-      if (cycleLen) body += ' | Цикл: ' + cycleLen + ' дн.';
-      if (periodLen) body += ' | Месячные: ' + periodLen + ' дн.';
+      let line = Calc.formatShort(cycle.startDate);
+      if (periodLen) line += ' | Месячные: ' + periodLen + ' дн.';
+      if (cycleLen) line += ' | Цикл: ' + cycleLen + ' дн.';
+      body += line + '\n';
     });
 
     const subject = encodeURIComponent('Red Alert — Статистика');
