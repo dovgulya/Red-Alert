@@ -74,25 +74,50 @@ const App = {
     return e;
   },
 
+  getCycleDayForDate(dateStr) {
+    for (let i = App.cycles.length - 1; i >= 0; i--) {
+      const cycle = App.cycles[i];
+      if (dateStr >= cycle.startDate) {
+        const nextStart = i < App.cycles.length - 1 ? App.cycles[i + 1].startDate : null;
+        if (nextStart && dateStr >= nextStart) continue;
+        const day = Calc.diffDays(cycle.startDate, dateStr) + 1;
+        if (day > 0 && day <= App.avgs.avgCycleLength + 14) return day;
+        return null;
+      }
+    }
+    return null;
+  },
+
   // ---- Calendar ----
 
-  setupCalendar() {
+  setupCalendar(targetDate) {
     App.scrollContainer = document.getElementById('calendarScroll');
     App.scrollContainer.textContent = '';
     App.renderedMonths.clear();
 
-    const today = new Date();
+    const center = targetDate ? Calc.parseDate(targetDate) : new Date();
     for (let offset = -2; offset <= 2; offset++) {
-      const d = new Date(today.getFullYear(), today.getMonth() + offset, 1);
+      const d = new Date(center.getFullYear(), center.getMonth() + offset, 1);
       App.renderMonth(d.getFullYear(), d.getMonth());
     }
 
     requestAnimationFrame(() => {
-      const todayEl = App.scrollContainer.querySelector('.calendar-day--today');
-      if (todayEl) {
-        const monthEl = todayEl.closest('.calendar-month');
-        if (monthEl) {
-          monthEl.scrollIntoView({ block: 'start' });
+      if (targetDate) {
+        const td = Calc.parseDate(targetDate);
+        const months = App.scrollContainer.querySelectorAll('.calendar-month');
+        for (const monthEl of months) {
+          if (parseInt(monthEl.dataset.year) === td.getFullYear() && parseInt(monthEl.dataset.month) === td.getMonth()) {
+            monthEl.scrollIntoView({ block: 'start' });
+            break;
+          }
+        }
+      } else {
+        const todayEl = App.scrollContainer.querySelector('.calendar-day--today');
+        if (todayEl) {
+          const monthEl = todayEl.closest('.calendar-month');
+          if (monthEl) {
+            monthEl.scrollIntoView({ block: 'start' });
+          }
         }
       }
       App.updateMonthTitle();
@@ -135,8 +160,14 @@ const App = {
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-      const dayEl = App.el('div', 'calendar-day', d);
+      const dayEl = App.el('div', 'calendar-day');
       dayEl.dataset.date = dateStr;
+      dayEl.appendChild(App.el('span', 'calendar-day__num', d));
+
+      const cycleDay = App.getCycleDayForDate(dateStr);
+      if (cycleDay) {
+        dayEl.appendChild(App.el('span', 'calendar-day__sub', cycleDay));
+      }
 
       if (dateStr === App.todayStr) {
         dayEl.classList.add('calendar-day--today');
@@ -215,14 +246,18 @@ const App = {
     const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
                         'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 
+    const threshold = 160;
+    let found = null;
     for (const m of months) {
-      const rect = m.getBoundingClientRect();
-      if (rect.top <= 160 && rect.bottom > 160) {
-        const y = m.dataset.year;
-        const mo = parseInt(m.dataset.month);
-        document.getElementById('currentMonth').textContent = monthNames[mo] + ' ' + y;
-        break;
+      const titleEl = m.querySelector('.calendar-month__title');
+      if (titleEl && titleEl.getBoundingClientRect().top <= threshold) {
+        found = m;
       }
+    }
+    if (found) {
+      const y = found.dataset.year;
+      const mo = parseInt(found.dataset.month);
+      document.getElementById('currentMonth').textContent = monthNames[mo] + ' ' + y;
     }
   },
 
@@ -376,8 +411,6 @@ const App = {
     modalActions.textContent = '';
 
     const state = App.dateMap.get(dateStr);
-    const lastCycle = App.cycles.length > 0 ? App.cycles[App.cycles.length - 1] : null;
-    const hasActiveCycle = lastCycle && !lastCycle.endDate;
 
     // Start period button
     const startBtn = App.el('button', 'modal-action modal-action--start');
@@ -387,15 +420,6 @@ const App = {
     startBtn.addEventListener('click', () => App.actionStartPeriod(dateStr));
     if (App.cycles.some(c => c.startDate === dateStr)) startBtn.disabled = true;
     modalActions.appendChild(startBtn);
-
-    // End period button
-    const endBtn = App.el('button', 'modal-action modal-action--end');
-    const endIcon = App.el('span', 'modal-action__icon', '🟣');
-    endBtn.appendChild(endIcon);
-    endBtn.appendChild(document.createTextNode(' Конец месячных'));
-    endBtn.addEventListener('click', () => App.actionEndPeriod(dateStr));
-    if (!hasActiveCycle || dateStr <= lastCycle.startDate) endBtn.disabled = true;
-    modalActions.appendChild(endBtn);
 
     // Remove mark button
     if (state && state.type === 'menstruation') {
@@ -418,34 +442,28 @@ const App = {
   async actionStartPeriod(dateStr) {
     App.closeModal();
     const lastCycle = App.cycles.length > 0 ? App.cycles[App.cycles.length - 1] : null;
-    if (lastCycle && !lastCycle.endDate && dateStr > lastCycle.startDate) {
-      const prediction = Calc.predictCycle(lastCycle.startDate, App.avgs.avgCycleLength, App.avgs.avgPeriodLength);
-      const autoEnd = prediction.predictedEndDate < dateStr ? prediction.predictedEndDate : Calc.addDays(dateStr, -1);
-      await DB.updateCycle(lastCycle.id, { endDate: autoEnd });
+    if (lastCycle && dateStr > lastCycle.startDate) {
+      const prevPeriodLen = lastCycle.periodLength || App.avgs.avgPeriodLength;
+      const prevEnd = lastCycle.endDate || Calc.addDays(lastCycle.startDate, prevPeriodLen - 1);
+      await DB.updateCycle(lastCycle.id, {
+        endDate: prevEnd,
+        periodLength: Calc.diffDays(lastCycle.startDate, prevEnd) + 1
+      });
     }
 
     const prediction = Calc.predictCycle(dateStr, App.avgs.avgCycleLength, App.avgs.avgPeriodLength);
+    const endDate = prediction.predictedEndDate;
     await DB.addCycle({
       startDate: dateStr,
-      endDate: null,
+      endDate: endDate,
       predictedEndDate: prediction.predictedEndDate,
       cycleLength: null,
-      periodLength: null
+      periodLength: App.avgs.avgPeriodLength
     });
 
     await App.saveBackup();
-    await App.refresh();
+    await App.refresh(dateStr);
     App.showToast('Цикл начат');
-  },
-
-  async actionEndPeriod(dateStr) {
-    App.closeModal();
-    const lastCycle = App.cycles[App.cycles.length - 1];
-    const periodLength = Calc.diffDays(lastCycle.startDate, dateStr) + 1;
-    await DB.updateCycle(lastCycle.id, { endDate: dateStr, periodLength });
-    await App.saveBackup();
-    await App.refresh();
-    App.showToast('Конец отмечен');
   },
 
   async actionRemoveMark(dateStr) {
@@ -468,7 +486,7 @@ const App = {
     }
 
     await App.saveBackup();
-    await App.refresh();
+    await App.refresh(dateStr);
   },
 
   // ---- History ----
@@ -605,7 +623,7 @@ const App = {
       });
       App.closeEditModal();
       await App.saveBackup();
-      await App.refresh();
+      await App.refresh(startDate);
       App.renderHistory();
       App.showToast('Сохранено');
     };
@@ -677,6 +695,8 @@ const App = {
       importFile.value = '';
     });
 
+    document.getElementById('btnEmailStats').addEventListener('click', () => App.sendEmailStats());
+
     document.getElementById('btnReset').addEventListener('click', () => {
       App.showConfirm('Удалить все данные?', () => {
         App.showConfirm('Точно удалить ВСЕ данные?', async () => {
@@ -696,11 +716,41 @@ const App = {
 
   // ---- Refresh ----
 
-  async refresh() {
+  async refresh(targetDate) {
     await App.loadData();
-    App.setupCalendar();
+    App.setupCalendar(targetDate);
     App.updateStatusBar();
     App.updateStats();
+  },
+
+  // ---- Email Stats ----
+
+  sendEmailStats() {
+    if (App.cycles.length === 0) {
+      App.showToast('Нет данных для отправки');
+      return;
+    }
+
+    const sorted = [...App.cycles].reverse();
+    let body = 'Red Alert — Статистика циклов\n\n';
+    body += 'Средняя длина цикла: ' + App.avgs.avgCycleLength + ' дн.\n';
+    body += 'Средняя длительность месячных: ' + App.avgs.avgPeriodLength + ' дн.\n\n';
+    body += 'История:\n';
+
+    sorted.forEach((cycle, idx) => {
+      const nextCycle = idx > 0 ? sorted[idx - 1] : null;
+      const cycleLen = nextCycle ? Calc.diffDays(cycle.startDate, nextCycle.startDate) : null;
+      const periodLen = cycle.endDate ? Calc.diffDays(cycle.startDate, cycle.endDate) + 1 : null;
+
+      body += '\n' + Calc.formatFull(cycle.startDate);
+      body += ' → ' + (cycle.endDate ? Calc.formatFull(cycle.endDate) : '...');
+      if (cycleLen) body += ' | Цикл: ' + cycleLen + ' дн.';
+      if (periodLen) body += ' | Месячные: ' + periodLen + ' дн.';
+    });
+
+    const subject = encodeURIComponent('Red Alert — Статистика');
+    const encodedBody = encodeURIComponent(body);
+    window.location.href = 'mailto:?subject=' + subject + '&body=' + encodedBody;
   },
 
   // ---- Toast ----
