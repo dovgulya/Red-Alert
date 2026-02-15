@@ -748,6 +748,13 @@ html, body {
   cursor: pointer;
 }
 
+.settings-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 .settings-divider {
   height: 1px;
   margin: 8px 20px;

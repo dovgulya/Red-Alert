@@ -4,7 +4,7 @@
 
 const App = {
   cycles: [],
-  defaults: { cycleLength: 28, periodLength: 5 },
+  defaults: { cycleLength: 28, periodLength: 5, ovulationOffset: 0 },
   dateMap: new Map(),
   avgs: { avgCycleLength: 28, avgPeriodLength: 5 },
   currentScreen: 'calendar',
@@ -322,7 +322,7 @@ const App = {
     }
 
     const lastCycle = App.cycles[App.cycles.length - 1];
-    const prediction = Calc.predictCycle(lastCycle.startDate, App.avgs.avgCycleLength, App.avgs.avgPeriodLength);
+    const prediction = Calc.predictCycle(lastCycle.startDate, App.avgs.avgCycleLength, App.avgs.avgPeriodLength, App.defaults.ovulationOffset);
     const cycleDay = Calc.getCycleDay(lastCycle.startDate, App.todayStr);
 
     if (cycleDay < 1 || cycleDay > App.avgs.avgCycleLength + 14) {
@@ -363,7 +363,7 @@ const App = {
   updateStats() {
     if (App.cycles.length > 0) {
       const lastCycle = App.cycles[App.cycles.length - 1];
-      const prediction = Calc.predictCycle(lastCycle.startDate, App.avgs.avgCycleLength, App.avgs.avgPeriodLength);
+      const prediction = Calc.predictCycle(lastCycle.startDate, App.avgs.avgCycleLength, App.avgs.avgPeriodLength, App.defaults.ovulationOffset);
       const cycleDay = Calc.getCycleDay(lastCycle.startDate, App.todayStr);
       const daysUntil = Calc.getDaysUntil(prediction.nextCycleDate);
 
@@ -469,7 +469,7 @@ const App = {
       });
     }
 
-    const prediction = Calc.predictCycle(dateStr, App.avgs.avgCycleLength, App.avgs.avgPeriodLength);
+    const prediction = Calc.predictCycle(dateStr, App.avgs.avgCycleLength, App.avgs.avgPeriodLength, App.defaults.ovulationOffset);
     const endDate = prediction.predictedEndDate;
     await DB.addCycle({
       startDate: dateStr,
@@ -616,7 +616,7 @@ const App = {
         return;
       }
 
-      const prediction = Calc.predictCycle(startDate, App.avgs.avgCycleLength, App.avgs.avgPeriodLength);
+      const prediction = Calc.predictCycle(startDate, App.avgs.avgCycleLength, App.avgs.avgPeriodLength, App.defaults.ovulationOffset);
       const newEnd = endDate || prediction.predictedEndDate;
       for (const c of App.cycles) {
         if (c.id === cycle.id) continue;
@@ -624,7 +624,7 @@ const App = {
           App.showToast('Уже есть цикл с этой датой начала');
           return;
         }
-        const cPrediction = Calc.predictCycle(c.startDate, App.avgs.avgCycleLength, App.avgs.avgPeriodLength);
+        const cPrediction = Calc.predictCycle(c.startDate, App.avgs.avgCycleLength, App.avgs.avgPeriodLength, App.defaults.ovulationOffset);
         const cEnd = c.endDate || cPrediction.predictedEndDate;
         if (!(newEnd < c.startDate || startDate > cEnd)) {
           App.showToast('Даты пересекаются с другим циклом');
@@ -684,6 +684,30 @@ const App = {
       await App.refresh();
     });
 
+    const ovulationOffsetSlider = document.getElementById('ovulationOffsetSlider');
+    const ovulationOffsetValue = document.getElementById('ovulationOffsetValue');
+    const ovulationOffsetHint = document.getElementById('ovulationOffsetHint');
+
+    const updateOffsetHint = (val) => {
+      if (val < 0) ovulationOffsetHint.textContent = `на ${Math.abs(val)} дн. раньше`;
+      else if (val > 0) ovulationOffsetHint.textContent = `на ${val} дн. позже`;
+      else ovulationOffsetHint.textContent = 'по расчёту';
+    };
+
+    ovulationOffsetSlider.value = App.defaults.ovulationOffset;
+    ovulationOffsetValue.textContent = App.defaults.ovulationOffset;
+    updateOffsetHint(App.defaults.ovulationOffset);
+
+    ovulationOffsetSlider.addEventListener('input', async (e) => {
+      const val = parseInt(e.target.value);
+      ovulationOffsetValue.textContent = val;
+      updateOffsetHint(val);
+      await DB.setSetting('ovulationOffset', val);
+      App.defaults.ovulationOffset = val;
+      await App.saveBackup();
+      await App.refresh();
+    });
+
     document.getElementById('btnExport').addEventListener('click', async () => {
       const data = await DB.exportData();
       const blob = new Blob([data], { type: 'application/json' });
@@ -720,7 +744,7 @@ const App = {
         App.showConfirm('Точно удалить ВСЕ данные?', async () => {
           await DB.clearAll();
           App.clearBackup();
-          App.defaults = { cycleLength: 28, periodLength: 5 };
+          App.defaults = { cycleLength: 28, periodLength: 5, ovulationOffset: 0 };
           cycleLengthSlider.value = 28;
           cycleLengthValue.textContent = '28';
           periodLengthSlider.value = 5;
@@ -759,7 +783,7 @@ const App = {
       const cycleLen = nextCycle ? Calc.diffDays(cycle.startDate, nextCycle.startDate) : null;
       const periodLen = cycle.endDate ? Calc.diffDays(cycle.startDate, cycle.endDate) + 1 : null;
 
-      let line = Calc.formatShort(cycle.startDate);
+      let line = Calc.formatShortWithYear(cycle.startDate);
       if (periodLen) line += ' | Месячные: ' + periodLen + ' дн.';
       if (cycleLen) line += ' | Цикл: ' + cycleLen + ' дн.';
       body += line + '\n';

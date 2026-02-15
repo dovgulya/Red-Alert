@@ -63,23 +63,14 @@ const Calc = {
       }
     }
 
-    // Period lengths from cycles with endDate
-    const periodLengths = cycles
-      .filter(c => c.endDate)
-      .map(c => Calc.diffDays(c.startDate, c.endDate) + 1)
-      .filter(l => l > 0 && l < 15);
-
     // Take last 3-6
     const recentCycles = completedWithLength.slice(-6);
-    const recentPeriods = periodLengths.slice(-6);
 
     const avgCycleLength = recentCycles.length >= 3
       ? Math.round(recentCycles.reduce((s, c) => s + c.cycleLength, 0) / recentCycles.length)
       : defaults.cycleLength;
 
-    const avgPeriodLength = recentPeriods.length >= 3
-      ? Math.round(recentPeriods.reduce((s, l) => s + l, 0) / recentPeriods.length)
-      : defaults.periodLength;
+    const avgPeriodLength = defaults.periodLength;
 
     return { avgCycleLength, avgPeriodLength };
   },
@@ -91,12 +82,11 @@ const Calc = {
    * @param {number} avgPeriodLength
    * @returns {{ predictedEndDate, ovulationDate, fertileStart, fertileEnd, nextCycleDate }}
    */
-  predictCycle(startDate, avgCycleLength, avgPeriodLength) {
+  predictCycle(startDate, avgCycleLength, avgPeriodLength, ovulationOffset = 0) {
     const predictedEndDate = Calc.addDays(startDate, avgPeriodLength - 1);
     const nextCycleDate = Calc.addDays(startDate, avgCycleLength);
-    // Day 1 is startDate; ovulation is ~14 days before next cycle
-    // Date = startDate + (cycleLength - 14 - 1)
-    const ovulationDate = Calc.addDays(startDate, avgCycleLength - 15);
+    // Day 1 is startDate; ovulation is ~14 days before next cycle + user offset
+    const ovulationDate = Calc.addDays(startDate, avgCycleLength - 15 + ovulationOffset);
     const fertileStart = Calc.addDays(ovulationDate, -5);
     const fertileEnd = Calc.addDays(ovulationDate, 1);
     return { predictedEndDate, ovulationDate, fertileStart, fertileEnd, nextCycleDate };
@@ -150,6 +140,15 @@ const Calc = {
   },
 
   /**
+   * Format date with year: "2 фев 2026"
+   */
+  formatShortWithYear(dateStr) {
+    const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+    const d = Calc.parseDate(dateStr);
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  },
+
+  /**
    * Format date for modal: "2 февраля 2026"
    */
   formatFull(dateStr) {
@@ -167,10 +166,11 @@ const Calc = {
   buildDateMap(cycles, defaults) {
     const map = new Map();
     const avgs = Calc.calcAverages(cycles, defaults);
+    const offset = defaults.ovulationOffset || 0;
 
     for (let i = 0; i < cycles.length; i++) {
       const cycle = cycles[i];
-      const prediction = Calc.predictCycle(cycle.startDate, avgs.avgCycleLength, avgs.avgPeriodLength);
+      const prediction = Calc.predictCycle(cycle.startDate, avgs.avgCycleLength, avgs.avgPeriodLength, offset);
 
       // Actual menstruation days
       const actualEnd = cycle.endDate || prediction.predictedEndDate;
@@ -226,7 +226,7 @@ const Calc = {
       // For the last cycle, also predict next period
       if (isLastCycle) {
         const nextStart = prediction.nextCycleDate;
-        const nextPrediction = Calc.predictCycle(nextStart, avgs.avgCycleLength, avgs.avgPeriodLength);
+        const nextPrediction = Calc.predictCycle(nextStart, avgs.avgCycleLength, avgs.avgPeriodLength, offset);
         let nd = Calc.parseDate(nextStart);
         const nEnd = Calc.parseDate(nextPrediction.predictedEndDate);
         while (nd <= nEnd) {

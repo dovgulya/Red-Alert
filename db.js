@@ -122,7 +122,8 @@ const DB = {
   async getDefaults() {
     const cycleLength = (await DB.getSetting('defaultCycleLength')) || 28;
     const periodLength = (await DB.getSetting('defaultPeriodLength')) || 5;
-    return { cycleLength, periodLength };
+    const ovulationOffset = (await DB.getSetting('ovulationOffset')) ?? 0;
+    return { cycleLength, periodLength, ovulationOffset };
   },
 
   async exportData() {
@@ -154,6 +155,7 @@ const DB = {
     if (data.settings) {
       if (data.settings.cycleLength) await DB.setSetting('defaultCycleLength', data.settings.cycleLength);
       if (data.settings.periodLength) await DB.setSetting('defaultPeriodLength', data.settings.periodLength);
+      if (data.settings.ovulationOffset != null) await DB.setSetting('ovulationOffset', data.settings.ovulationOffset);
     }
   },
 
@@ -167,5 +169,6 @@ const DB = {
     });
     await DB.setSetting('defaultCycleLength', 28);
     await DB.setSetting('defaultPeriodLength', 5);
+    await DB.setSetting('ovulationOffset', 0);
   }
 };

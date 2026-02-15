@@ -67,6 +67,14 @@
         </label>
         <input type="range" class="settings-slider" id="periodLengthSlider" min="3" max="7" value="5">
       </div>
+      <div class="settings-group">
+        <label class="settings-label">
+          Смещение овуляции
+          <span class="settings-value" id="ovulationOffsetValue">0</span>
+        </label>
+        <input type="range" class="settings-slider" id="ovulationOffsetSlider" min="-5" max="5" value="0">
+        <span class="settings-hint" id="ovulationOffsetHint">по расчёту</span>
+      </div>
       <div class="settings-divider"></div>
       <button class="settings-btn" id="btnExport">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
